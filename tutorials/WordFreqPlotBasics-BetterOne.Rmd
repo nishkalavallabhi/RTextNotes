@@ -39,12 +39,14 @@ which(something == "Y")
 ```
 These two lines return 1 and 25 respectively, because those are the locations of the strings "A" and "Y". "==" is a symbol used for "comparison". The output of a == b kind of expressions is always a True or False.
  
-Let us get back to our question. So, we know how it looks just before the start of the book and right after the end. We can use the which function to get those line numbers. However, there is a small issue. The above which example, and the one we used in last class, both give the full exact line in the quotes. We cannot do that here, if we want this to work with all gutenberg texts (Why?). Thankfully, there is a function for strings in R, called startsWith(string, pattern), which returns a True or False, depending on whether a string of words start with a given pattern
+Let us get back to our question. So, we know how it looks just before the start of the book and right after the end. We can use the which function to get those line numbers. However, there is a small issue. The above which example, and the one we used in last class, both give the full exact line in the quotes. We cannot do that here, if we want this to work with all gutenberg texts (Why?). Thankfully, there is a function for strings in R, called startsWith(string, pattern), which returns a True or False, depending on whether a string of words start with a given pattern. 
+
+EDIT after class: I noticed that they are not consistent with this *** START OF THIS and ***END OF THIS either! sometimes, there is a space in between, and sometimes there is no space! So, I looked at stringr library's other methods, and noticed there is a str_detect, which just looks whether a substring exists in a longer string (not just at start or end - anywhere). I used that instead now, to make this better. 
 
 ```{r}
-meta.top.end <- which(startsWith(english,"*** START OF THIS PROJECT GUTENBERG EBOOK"))
-meta.bottom.start <- which(startsWith(english, "End of the Project Gutenberg EBook"))
-actual_english <- english[meta.top.end+1:meta.bottom.start+1]
+meta.top.end <- which(str_detect(english,"START OF THIS PROJECT"))
+meta.bottom.start <- which(str_detect(english,"END OF THIS PROJECT"))
+actual_english <- english[meta.top.end+1:meta.bottom.start-1]
 ```
 
 Why did I add +1? 
