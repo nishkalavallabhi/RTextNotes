@@ -1,3 +1,5 @@
+#Simple R program to read .txt versions of Gutenberg.org books, and plot the frequencies of 10 most frequent words.
+
 #set your working directory to where this file is, or give full path
 library(stringr)
 english <- scan("DollsHouse-Esperanto.txt", what = "character", sep = "\n")
@@ -8,5 +10,5 @@ actual_english_string <- paste(actual_english, collapse = " ")
 english_lower <- tolower(actual_english_string)
 english_words <- strsplit(english_lower, "\\W+")
 sorted_freqs_english <- sort(table(english_words), decreasing = TRUE)
-plot(sorted_freqs_english[1:11], type="b")
+plot(sorted_freqs_english[1:10], type="b")
 
