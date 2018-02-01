@@ -1,4 +1,4 @@
-setwd("/home/bangaru/Dropbox/ClassroomSlides-BothCourses/LING410X/Week2Materials")
+#set your working directory to where this file is, or give full path
 library(stringr)
 english <- scan("DollsHouse-Esperanto.txt", what = "character", sep = "\n")
 english.start <- which(str_detect(english,"START OF THIS PROJECT"))
