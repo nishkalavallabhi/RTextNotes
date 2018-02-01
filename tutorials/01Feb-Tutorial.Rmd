@@ -1,0 +1,195 @@
+---
+title: "Chapter4"
+author: "Sowmya"
+date: "1/2/2018"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Purpose of this document is to show how to take a piece of text, do some pre-processing and start analysing how words are distributed across the text. It can be considered as a continuation from where we ended on Week 2. I want you to read Chapter 4 of the textbook, and also take a look at my class slides for today's class, along with this worksheet. 
+
+Important instructions: 
+1) Do not copy paste from this pdf file. Type what you want to run in R console. 
+2) Set your working directory before proceeding, or
+3) Use full file paths where I give file names.
+
+## Let us start 
+
+Initially I am going to read DollsHouse-Eng.txt and do some preprocessing on that. 
+```{r}
+english <- scan("DollsHouse-Eng.txt", what = "character", sep = "\n")
+english.start <- which (english ==  "DRAMATIS PERSONAE")
+english.end <- which (english == "(The sound of a door shutting is heard from below.)")
+dollshouse_text <- english[english.start:english.end]
+dollshouse_string <- paste(dollshouse_text, collapse = " ")
+dollshouse_string <- tolower(dollshouse_string)
+dollshouse_string <- gsub("[[:punct:]]", " ", dollshouse_string)
+dollshouse_string <- gsub(" +", " ", dollshouse_string)
+```
+
+What are these lines above doing?? Try to understand each line. What is dollshouse_string expected to have in the end here? Quick summary of the above code:
+line 1: reading the file into R
+line 2-4: getting the actual content of the file, discarding meta data
+line 5: converting collection of lines into one big string.
+line 6--8: lowercasing, removing punctuations, removing extra spaces
+(Why did the extra spaces come up??)
+
+```{r}
+dollshouse_words <-strsplit(dollshouse_string, "\\W")
+sorted_wordfreqs_dollshouse <-sort(table(dollshouse_words), decreasing = TRUE)
+```
+What should I expect to see in sorted_wordfreqs_dollshouse after all these? 
+
+Number of unique words and total number of words in the text can be obtained by the following two lines once we create a sorted table:
+```{r}
+length(sorted_wordfreqs_dollshouse)
+sum(sorted_wordfreqs_dollshouse)
+```
+
+To access individual word frequencies, and compare them with each other can be done by something like this: 
+```{r}
+sorted_wordfreqs_dollshouse["doll"]
+sorted_wordfreqs_dollshouse["he"]/sorted_wordfreqs_dollshouse["she"]
+```
+First line just gets me back number of times "doll" appeared in the text. Second line gives me ratio between "he" vs "she" in this text.
+
+Plotting the 10 most frequent wods and their frequencies is done like below, as you already saw in Week 2.
+```{r}
+plot(sorted_wordfreqs_dollshouse[1:10], type="b")
+```
+
+Converting raw counts to relative frequencies: Let us say I want to convert all these counts into numbers indicating: "number of times I will see a word for every 100 words" instead of general counts (you will need this sometimes, in corpus analysis work)
+```{r}
+sorted_wordfreqs_dollshouse_100 <- 100 * (sorted_wordfreqs_dollshouse)/ sum(sorted_wordfreqs_dollshouse)
+sorted_wordfreqs_dollshouse["the"]
+sorted_wordfreqs_dollshouse_100["the"]
+sorted_wordfreqs_dollshouse["doll"]
+sorted_wordfreqs_dollshouse_100["doll"]
+```
+Now, let us see how the plot for 10 most frequent words looks like after this relative counts:
+```{r}
+plot(sorted_wordfreqs_dollshouse_100[1:10], type="b")
+```
+Does the shape of the plot change? Why? Why not?
+
+## Dispersion Plots
+Let us move now to the task of plotting usage of a given word across the whole document in a text. 
+
+```{r}
+dollshouse_words_vector <- unlist(dollshouse_words)
+```
+What this line is doing is to convert a list to a vector. This is because I want to in the next step create another vector which matches the words in the text, with numbers indicating the position of that word in the whole text.
+
+```{r}
+progress <- seq(1:length(dollshouse_words_vector))
+nora <- which(dollshouse_words_vector == "nora")
+length(nora)
+nora_progression <- rep(NA, length(progress))
+nora_progression[nora] <- 1
+plot(nora_progression, main="Dispersion plot for word 'nora' in 'A Doll\'s House' play",
+    xlab="position in text", ylab="nora", type="h", ylim=c(0,1), yaxt = 'n')
+#nora_progression
+#use the above line if you want to see what that variable nora looks like. 
+```
+nora_progression vector will have a  1 where the word is nora,  and NA where it is not, and it is as long as the length of the dolls house play!
+
+Let us do the same analysis for another word, "rank"
+```{r}
+progress <- seq(1:length(dollshouse_words_vector))
+rank <- which(dollshouse_words_vector == "rank")
+rank_progression <- rep(NA, length(progress))
+rank_progression[rank] <- 1
+plot(rank_progression, main="Dispersion plot for word 'rank' in 'A Doll\'s House' play",
+     xlab="position in text", ylab="rank", type="h", ylim=c(0,1), yaxt = 'n')
+```
+
+ylim is used to limit my y-axis scale to (0,1) because my nora_progression vector elements only take a value of either 1 or NA. yaxt=n is used to indicate that I do not want to see those numbers (0 to 1) marked on the axis, because I am not looking for "numeric" comparisons anyway. 
+
+We don't have to copy-paste repetitively each time we want for a new word. We can write our own R function for that - more on this in the coming weeks!
+
+###Using Grep to identify chapter breaks
+From here, I will use another book: Moby Dick, following the textbook example. The task here is to first split the novel by chapters, and analyze word usage across chapters (instead of word by word, like in dispersion plot example above). Chapters seem to start with "CHAPTER " followed by a digit sequence. So, we can use that to get the line numbers for where a chapter begins, using regular expressions.
+
+```{r}
+moby <- scan("mobydick.txt", what = "character", sep = "\n")
+moby.start <- which (moby ==  "CHAPTER 1. Loomings.")
+moby.end <- which (moby == "orphan.")
+moby.actual <- moby[moby.start:moby.end]
+moby.chap.positions <- grep("^CHAPTER \\d", moby.actual)
+#moby.actual[moby.chap.positions]
+```
+
+Okay, I do know where all chapters are beginning and ending, but I do not really know where this last chapter ends. But, I perhaps can get it by just getting the last line of the novel itself. Here is how to find that out:
+```{r}
+moby.last.position <- length(moby.actual)
+moby.chap.positions <- c(moby.chap.positions, moby.last.position)
+moby.chap.positions
+#length(moby.chap.positions) gives you the number of chapters.
+```
+
+So, I want to now go through chapter by chapter, and get the sorted word frequency table like we did before (i.e., instead of a single large table, we will have N such tables, where N is the number of chapters). I am doing this using a for loop here. I am going to store all that information in a variable chapters.raw in the below code - since initially, it does not have anything, I just declare a empty list.
+
+How do I get the end line for a given chapter? - it is the line before the next chapter's start! 
+```{r}
+chapters.raw <- list()
+for (i in 1:(length(moby.chap.positions) -1))
+{
+  titleline <- moby.chap.positions[i]
+  title <- moby.actual[titleline]
+  start <- titleline+1
+  end   <- moby.chap.positions[i+1]-1
+  chapter.lines <- moby.actual[start:end]
+  chapter.string <- tolower(paste(chapter.lines, collapse = " "))
+  chapter.string <- gsub(" +", " ", gsub("[[:punct:]]", " ", chapter.string))
+  chapter.words <- unlist(strsplit(chapter.string, "\\W"))
+  chapter.freqs <- table(chapter.words)
+  chapters.raw[[title]] <- chapter.freqs
+}
+
+#10 most frequent words in Chapter 1
+sort(chapters.raw[[1]], decreasing = TRUE)[1:10]
+
+#10 most frequent words in Chapter 2
+sort(chapters.raw[[2]], decreasing = TRUE)[1:10]
+
+#Frequency of "whale" in Chapter 1
+chapters.raw[[1]]["whale"]
+
+#Frequency of "whale" in Chapter 2
+chapters.raw[[2]]["whale"]
+
+```
+  
+Getting information about specific words across chapters, formatting them and plotting:
+1. We will use lapply for this - we learnt about this in today's class. The first line gives us the chapter names and frequency of whales in that chapter as a list.
+2. Once i have that, I am writing a for-loop to create a vector of only the chapter wise counts for the word "whale"
+3. Then, I use the counts
+```{r}
+whale <- lapply(chapters.raw, "[", "whale")
+whale_counts = c()
+for (i in 1:length(whale))
+{
+  whale_counts[i] <- whale[[i]]
+}
+whale_counts
+plot(whale_counts, type="h")
+```
+
+Let me do this for another word:
+```{r}
+voyage <- lapply(chapters.raw, "[", "voyage")
+voyage_counts = c()
+for (i in 1:length(voyage))
+{
+  voyage_counts[i] <- voyage[[i]]
+}
+voyage_counts[is.na(voyage_counts)] <- 0 #Replacing NAs with 0.
+plot(voyage_counts, type="b")
+```
+
+Note: There are other ways of doing this, and R has several advanced functions that will let you do stuff without writing too many loops. You will get there as you progress further!
