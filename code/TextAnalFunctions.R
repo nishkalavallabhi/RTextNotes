@@ -1,7 +1,8 @@
 "
-This R program has two functions: 
+This R program has three functions: 
 a) one reads in a text file and converts it into a vector of words
-b) second one plots the dispersion plot for a word in a text
+b) second one takes the vector and prints out n-most frequent words in it.
+c) third one plots the dispersion plot for a word in a text
 "
 library(stringr)
 
@@ -15,6 +16,17 @@ get_words_vector <- function(file_path)
   fulltext_as_string <- paste(fulltext, collapse = " ")
   words_vector <- unlist(strsplit(tolower(fulltext_as_string), "\\W+"))
   return (words_vector)
+}
+
+"
+This function takes a vector of words from a text, 
+and returns you n most frequent words in the text and their frequencies
+note: modify the code to print in a neater way, whichever way you want!
+"
+get_freq_words <- function(wordsvector, n)
+{
+  sorted_freqs <- sort(table(wordsvector), decreasing = TRUE)
+  return(sorted_freqs[1:n])
 }
 
 "
