@@ -7,7 +7,7 @@ processfile <- function(file_name)
 {
   text <- scan(file_name, what = "character", sep = "\n") 
   text_as_string <- tolower(paste(text, collapse = " "))
-  text_as_string <- gsub("([[:punct:]])", "\\ ", text_as_string)
+  text_as_string <- gsub("([[:punct:]])", " ", text_as_string)
   text_as_string <-  gsub(" +", " ", text_as_string)
   return(unlist(strsplit(text_as_string, " ")))
 }
